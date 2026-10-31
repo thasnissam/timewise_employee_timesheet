@@ -1,0 +1,275 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TimeWise</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--bg:#f6f7fb;--cd:#fff;--fg:#1b2238;--mu:#6b7490;--ln:#e2e6f0;--ac:#1d4ed8;--al:#e8efff;--sh:rgba(120,130,160,.09)}
+[data-theme=dark]{--bg:#0f1220;--cd:#181c2e;--fg:#e8ebf7;--mu:#98a1c0;--ln:#2a3050;--ac:#3b82f6;--al:#1b2a4a;--sh:rgba(0,0,0,.3)}
+*{box-sizing:border-box}body{margin:0;font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--fg)}
+main,header,nav{max-width:1000px;margin:auto;padding-left:20px;padding-right:20px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-top:22px}
+.logo{font-size:20px;font-weight:700;letter-spacing:-.02em}.logo b{color:var(--ac)}
+nav{display:flex;gap:6px;margin-top:18px;overflow-x:auto}nav button{background:none;border:0;padding:8px 16px;border-radius:20px;color:var(--mu);font:inherit;cursor:pointer;white-space:nowrap}nav button.on{background:var(--ac);color:#fff}
+main{padding-top:20px;padding-bottom:70px}h2{margin:0 0 14px;font-size:20px}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--cd);border:1px solid var(--ln);border-radius:10px;padding:7px 11px}
+textarea{width:100%;min-height:130px;resize:vertical}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 10px var(--sh)}.card h3{margin:0 0 12px;font-size:15px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:7px 14px;cursor:pointer;font:inherit}.btn.g{background:var(--cd);color:var(--ac);border:1px solid var(--ln)}.btn.s{padding:3px 10px;font-size:12px;margin-top:6px}
+table.g{width:100%;border-collapse:collapse;border:1px solid var(--ln)}table.g th,table.g td{border:1px solid var(--ln);padding:7px 10px;text-align:left}
+table.g th{background:var(--al);font-size:12px;font-weight:600}table.g td.n,table.g th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.g tr.s1 td{background:var(--sh);color:var(--mu)}table.g tr.s2 td{color:#e5534b}table.g tr.s3 td{background:var(--al);color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}.grid .card{margin:0}
+.stat{border-top:4px solid var(--c,var(--ac))}.stat span{color:var(--mu);font-size:12px}.stat b{display:block;font-size:24px}
+.emp{cursor:pointer;border-left:5px solid var(--c);display:flex;gap:12px;align-items:center}.emp:hover{transform:translateY(-1px)}.emp b{font-size:17px;display:block}
+.av{display:inline-flex;flex:none;width:42px;height:42px;border-radius:50%;background:var(--c);color:#fff;align-items:center;justify-content:center;font-weight:700}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--c)}
+.bar{display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:10px}.bar div{flex:1;display:flex;align-items:flex-end;height:100%}.bar i{display:block;width:100%;background:var(--c,var(--ac));border-radius:3px 3px 0 0;min-height:1px}
+#chat{min-height:260px;max-height:460px;overflow:auto;margin-bottom:12px}.msg{padding:9px 13px;border-radius:14px;margin:8px 0;max-width:90%;width:fit-content;white-space:pre-wrap}.me{background:var(--ac);color:#fff;margin-left:auto}.bot{background:var(--al)}
+.chip{border:1px solid var(--ln);background:var(--cd);color:var(--mu);border-radius:20px;padding:4px 12px;cursor:pointer;font:inherit;font-size:12px}
+.x{background:none;border:0;color:var(--mu);cursor:pointer;font:inherit}.scroll{overflow-x:auto}.sun{color:var(--mu);font-size:12px}
+#auth{position:fixed;inset:0;background:var(--bg);z-index:9;overflow:auto;display:none}#auth .card{max-width:380px;margin:10vh auto}#auth input{width:100%;margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin:14px 0}.tabs button{flex:1;background:var(--cd);border:1px solid var(--ln);border-radius:10px;padding:7px;color:var(--mu);font:inherit;cursor:pointer}.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}.err{color:#e5534b;min-height:20px;margin:2px 0 8px}
+</style></head><body>
+<div id="auth"><div class="card"><div class="logo">Time<b>Wise</b></div><div class="sun">Payroll and timesheets for your company</div>
+<div class="tabs"><button id="t-in" onclick="amode('in')">Sign in</button><button id="t-up" onclick="amode('up')">Create account</button></div>
+<form onsubmit="authGo(event)"><div id="ac-co" hidden><input id="aco" placeholder="Company name" autocomplete="organization"></div><input id="au" placeholder="Username" autocomplete="username"><input id="ap" type="password" placeholder="Password (8+ characters)" autocomplete="current-password"><div id="ac-pw" hidden><input id="ap2" type="password" placeholder="Confirm password" autocomplete="new-password"></div><div class="err" id="aerr"></div><button class="btn" id="abtn" style="width:100%">Sign in</button></form>
+<p class="sun" id="anote"></p></div></div>
+<header><div><div class="logo">Time<b>Wise</b></div><div class="sun" id="co-n"></div></div><div class="row"><button class="btn g" onclick="shift(-1)">‹</button><select id="mo"></select><input type="number" id="yr" style="width:84px"><button class="btn g" onclick="shift(1)">›</button><button class="btn g" id="thb" onclick="theme()"></button><button class="btn g" onclick="logout()">Sign out</button></div></header>
+<nav id="nav"></nav>
+<main>
+<section id="v-dash"></section>
+<section id="v-ts"><div class="card"><h3>Add timesheet entries</h3><textarea id="paste" placeholder="19/10/26&#10;Manoj, Kiran, Bleson&#10;8am to 5pm&#10;&#10;20/10/26&#10;Manoj, Kiran&#10;3pm to 12am&#10;&#10;Use 'leave' or 'public holiday' instead of a time ('all' = everyone)."></textarea>
+<div class="row" style="margin-top:10px"><button class="btn" onclick="addPaste()">Add entries</button><span id="pmsg" class="sun"></span></div></div><div class="card"><h3>Mark leave or public holiday</h3><div class="row"><select id="lvE"></select><input type="date" id="lvA"><span class="sun">to</span><input type="date" id="lvB"><select id="lvT"><option value="L">Leave</option><option value="H">Public holiday</option></select><button class="btn" onclick="markLeave()">Apply</button><span id="lvm" class="sun"></span></div></div>
+<div class="card scroll"><div class="row" style="margin-bottom:10px"><select id="tsf" onchange="TF=+this.value;rLog()"></select><span class="sun" id="sv">Changes save automatically</span></div><div id="addA"></div><div id="ent"></div></div></section>
+<section id="v-pay"><div class="card scroll" id="sal"></div><div class="card" id="dls"></div><div class="card scroll"><h3>Recent reports</h3><div id="rh"></div></div></section>
+<section id="v-emp"><div class="card scroll"><table class="g" id="emp"></table>
+<p class="sun">Changes apply from the selected month onward; earlier months keep their old values. Hourly rate = basic salary ÷ 30 ÷ 8 (editing basic salary recalculates it; you can also type a rate directly). Leave is deducted using the monthly salary ÷ 30.</p>
+<div class="row"><input id="nn" placeholder="New employee name"><input id="ns" type="number" placeholder="Monthly salary" style="width:140px"><input id="nb" type="number" placeholder="Basic salary" style="width:130px"><button class="btn" onclick="addEmp()">Add employee</button></div></div>
+<div class="card row"><button class="btn g" onclick="bk()">Download backup</button><label class="btn g">Restore backup<input type="file" accept=".json" hidden onchange="imp(this.files[0])"></label><span class="sun">Data is stored in this browser. Keep a backup to move it elsewhere.</span></div></section>
+<section id="v-ai"><div class="card"><div id="chat"><div class="msg bot">Hi! Ask me about salaries, overtime or shifts. Paste timesheet messages, tell me "Kiran on leave from 5 to 9 October", or ask for a payroll PDF, Excel or CSV for any period (e.g. "payroll PDF for the last 6 months").</div></div>
+<div class="row" style="margin-bottom:12px"><input id="q" style="flex:1;min-width:200px" placeholder="Type your question here..." onkeydown="if(event.key=='Enter')send()"><button class="btn" onclick="send()">Send</button></div>
+<div class="row"><button class="chip" onclick="send(this.textContent)">What was the salary for Kiran in October?</button><button class="chip" onclick="send(this.textContent)">Overtime salary for Manoj in October</button><button class="chip" onclick="send(this.textContent)">Payroll PDF for the last 3 months</button><button class="chip" onclick="send(this.textContent)">Generate all salary sheets for 2026</button><button class="chip" onclick="send(this.textContent)">Kiran's shift details in October</button></div></div></section>
+<section id="v-one"></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),K='tsapp',pad=n=>String(n).padStart(2,'0'),R=n=>Math.round(n*100)/100;
+const f2=n=>R(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MN='January February March April May June July August September October November December'.split(' '),MM=MN.map(x=>x.toLowerCase()),DN='Sun Mon Tue Wed Thu Fri Sat'.split(' ');
+const PAL=['#2563eb','#ec4899','#f59e0b','#10b981','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#84cc16'],AC='#1e3a8a';
+let U=null,KEY=null,D=null,AM='in';const ACT=[];
+const te=new TextEncoder(),td=new TextDecoder(),b64=b=>{let s='';const a=new Uint8Array(b);for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode(...a.subarray(i,i+8192));return btoa(s)},ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const acc=()=>{try{return JSON.parse(localStorage.getItem('tw_acc'))||{}}catch(e){return{}}};
+async function dk(pw,salt){const k=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
+async function enc(o){const iv=crypto.getRandomValues(new Uint8Array(12));return b64(iv)+'.'+b64(await crypto.subtle.encrypt({name:'AES-GCM',iv},KEY,te.encode(JSON.stringify(o))))}
+async function dec(s){const [a,b]=s.split('.');return JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(a)},KEY,ub(b))))}
+async function flush(){if(U&&KEY&&D)localStorage.setItem('tw_d_'+U,await enc(D))}
+const stamp=()=>{const e=document.getElementById("sv");if(e)e.textContent="Saved "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})};
+let pt;const persist=()=>{clearTimeout(pt);pt=setTimeout(()=>flush().then(stamp).catch(e=>alert('Could not save: '+e.message)),60)};
+function amode(m){AM=m;$('ac-co').hidden=$('ac-pw').hidden=m=='in';$('abtn').textContent=m=='up'?'Create account':'Sign in';$('t-in').className=m=='in'?'on':'';$('t-up').className=m=='up'?'on':'';$('aerr').textContent='';
+ $('anote').textContent=m=='up'?'Your data is encrypted with your password and stored in this browser only. A forgotten password cannot be recovered, so keep a backup (Employees tab).':'Each company has its own account. Use Create account to add another company.'}
+async function authGo(ev){ev.preventDefault();const u=$('au').value.trim().toLowerCase(),p=$('ap').value,A=acc();$('aerr').textContent='';
+ try{if(AM=='up'){const co=$('aco').value.trim();if(!co)throw Error('Enter the company name.');if(!u)throw Error('Choose a username.');if(p.length<8)throw Error('Password must be at least 8 characters.');if(p!=$('ap2').value)throw Error('Passwords do not match.');if(A[u])throw Error('That username already exists on this device.');
+   const salt=crypto.getRandomValues(new Uint8Array(16));KEY=await dk(p,salt);D={co,n:100,ents:[],emps:[],reps:[]};U=u;A[u]={salt:b64(salt)};localStorage.setItem('tw_acc',JSON.stringify(A));await flush()}
+  else{if(!A[u])throw Error('Wrong username or password.');KEY=await dk(p,ub(A[u].salt));try{D=await dec(localStorage.getItem('tw_d_'+u))}catch(e){KEY=null;throw Error('Wrong username or password.')}U=u;D.reps=D.reps||[]}
+  await startSession()}catch(e){$('aerr').textContent=e.message}}
+async function startSession(){sessionStorage.setItem('tw_s',JSON.stringify({u:U,k:await crypto.subtle.exportKey('jwk',KEY)}));$('auth').style.display='none';$('ap').value=$('ap2').value='';$('co-n').textContent=D.co;go(D.emps.length?'dash':'emp')}
+async function boot(){theme(TH);try{const s=JSON.parse(sessionStorage.getItem('tw_s'));if(s){KEY=await crypto.subtle.importKey('jwk',s.k,'AES-GCM',true,['encrypt','decrypt']);U=s.u;D=await dec(localStorage.getItem('tw_d_'+U));D.reps=D.reps||[];await startSession();return}}catch(e){}
+ KEY=null;D=null;$('auth').style.display='block';amode(Object.keys(acc()).length?'in':'up')}
+async function logout(){try{await flush()}catch(e){}sessionStorage.removeItem('tw_s');location.reload()}
+const shift=k=>{[Y,M]=addM(Y,M,k);render()};
+
+const colOf=e=>PAL[Math.max(0,D.emps.indexOf(e))%PAL.length],rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+let TH=null;try{TH=localStorage.getItem('tsTheme')}catch(e){}
+function theme(t){TH=t||(TH=='dark'?'light':'dark');try{localStorage.setItem('tsTheme',TH)}catch(e){}document.documentElement.dataset.theme=TH;$('thb').textContent=TH=='dark'?'Light mode':'Dark mode'}
+if(!TH)TH=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+const now=new Date();let Y=now.getFullYear(),M=now.getMonth()+1,V='dash',CUR=0;
+const key=(y,m)=>y+'-'+pad(m),dim=(y,m)=>new Date(y,m,0).getDate(),mins=t=>{const [h,m]=t.split(':');return h*60+ +m};
+const f12=t=>{let [h,m]=t.split(':').map(Number);return(h%12||12)+':'+pad(m)+' '+(h>=12?'PM':'AM')};
+const dur=x=>{const a=mins(x.s);let b=mins(x.t);if(b<=a)b+=1440;return(b-a)/60};
+const lev=(a,b)=>{if(a==b)return 0;if(Math.abs(a.length-b.length)>1)return 9;let i=0;while(i<a.length&&a[i]==b[i])i++;const x=a.slice(i),y=b.slice(i);return(x.slice(1)==y.slice(1)||x.slice(1)==y||x==y.slice(1))?1:9};
+const gE=id=>D.emps.find(e=>e.id==id),has=(e,y,m)=>D.ents.some(x=>x.e==e.id&&x.d.startsWith(key(y,m))),hasData=(y,m)=>D.ents.some(x=>x.d.startsWith(key(y,m)));
+const inc=(e,y,m)=>{const k=key(y,m);return(k>=e.st&&(!e.en||k<e.en))||has(e,y,m)},emps=(y,m)=>D.emps.filter(e=>inc(e,y,m));
+function salOf(e,y,m){const k=key(y,m);let v=e.sal[0];for(const a of e.sal)if(a.k<=k)v=a;return v}
+const rateOf=a=>a.r??(a.b||a.s)/240;
+function calc(e,y,m){const sr=salOf(e,y,m),s=sr.s,rate=rateOf(sr),n=dim(y,m),k=key(y,m),es=D.ents.filter(x=>x.e==e.id&&x.d.startsWith(k)),days=[];let th=0,reg=0,ot=0,pay=0,lv=0,hol=0;
+ for(let d=1;d<=n;d++){const iso=k+'-'+pad(d),sun=new Date(y,m-1,d).getDay()==0,ds=es.filter(x=>x.d==iso),sh=ds.filter(x=>x.s&&x.t).sort((a,b)=>mins(a.s)-mins(b.s)).map(x=>({S:f12(x.s),E:f12(x.t),h:dur(x)})),T=sh.reduce((a,x)=>a+x.h,0);
+  let r=0,o=0,p=0;if(T){if(sun){o=T;p=T*rate*1.5}else{r=Math.min(T,8);o=Math.max(0,T-9);p=o*rate*1.25}}
+  const L=ds.some(x=>x.L)&&!sh.length,H=ds.some(x=>x.H);if(L)lv++;if(H)hol++;th+=r+o;reg+=r;ot+=o;pay+=p;days.push({d,sun,sh,h:r+o,r,o,p,L,H})}
+ const ded=Math.min(s,lv>=n?s:lv*s/30);return{e,s,rate,days,th:R(th),reg:R(reg),ot:R(ot),pay:R(pay),lv,hol,ded:R(ded),base:R(s-ded),tot:R(s-ded+pay)}}
+const st=d=>d.L?'Leave':d.H?'Public holiday':'',short=(y,m)=>MN[m-1].slice(0,3)+' '+String(y).slice(2),rem=c=>[c.lv?c.lv+' leave day'+(c.lv>1?'s':'')+' deducted':'',c.hol?c.hol+' public holiday'+(c.hol>1?'s':''):''].filter(Boolean).join(', ');
+function salDoc(y,m){const cs=emps(y,m).map(e=>calc(e,y,m)),t=i=>R(cs.reduce((a,c)=>a+i(c),0));
+ return{name:'Salary '+short(y,m),title:'Salary Sheet - '+MN[m-1]+' '+y,meta:[],head:['Employee','Salary','OT salary','Total salary','Remarks'],ec:cs.map(c=>colOf(c.e)),
+ rows:cs.map(c=>[c.e.name,c.base,c.pay,c.tot,c.lv?'Leave':'']),foot:['Total',t(c=>c.base),t(c=>c.pay),t(c=>c.tot),'']}}
+function tsDoc(e,y,m){const c=calc(e,y,m),rows=[],fl=[];
+ c.days.forEach(x=>{const dt=pad(x.d)+'/'+pad(m)+'/'+y,dn=DN[new Date(y,m-1,x.d).getDay()],f=x.L?2:x.H?3:x.sun?1:0;
+  if(x.sh.length<2){const s=x.sh[0];rows.push([dt,dn,s?s.S:'',s?s.E:'',R(x.r),R(x.o),R(x.p),R(x.h),st(x)]);fl.push(f)}
+  else x.sh.forEach((s,i)=>{rows.push([i?'':dt,i?'':dn,s.S,s.E,i?0:R(x.r),i?0:R(x.o),i?0:R(x.p),i?0:R(x.h),i?'':st(x)]);fl.push(f)})});
+ return{name:e.name.slice(0,18)+' '+short(y,m),title:'Monthly Timesheet - '+MN[m-1]+' '+y,col:colOf(e),meta:[['Employee',e.name],['Hourly rate',f2(c.rate)],['Month','01/'+pad(m)+'/'+y]],
+ head:['Date','Day','Start time','End time','Regular hrs','OT hrs','OT salary','Total hrs','Remarks'],rows,fl,
+ foot:['TOTAL','','','',c.reg,c.ot,c.pay,c.th,''],sum:[['Salary',c.base],['OT salary',c.pay],['Total salary',c.tot]]}}
+function sumDoc(L){const rows=D.emps.map(e=>{let t=0;const r=L.map(([y,m])=>{if(!inc(e,y,m))return'';const v=calc(e,y,m).tot;t+=v;return v});return[e.name,...r,R(t)]}).filter(r=>r.slice(1,-1).some(v=>v!==''));
+ return{name:'Summary',title:'Salary Summary - '+label(L),meta:[],head:['Employee',...L.map(([y,m])=>short(y,m)),'Total'],rows,foot:['Total',...L.map((_,i)=>R(rows.reduce((a,r)=>a+(+r[i+1]||0),0))),R(rows.reduce((a,r)=>a+r[r.length-1],0))]}}
+const label=ps=>ps.length==1?MN[ps[0][1]-1]+' '+ps[0][0]:short(...ps[0])+' to '+short(...ps[ps.length-1]);
+function build(sp){const docs=[];if(sp.ps.length>1&&sp.mode!='ts')docs.push(sumDoc(sp.ps));
+ sp.ps.forEach(([y,m])=>{if(sp.mode=='ts')(sp.emp?[gE(sp.emp)]:emps(y,m)).forEach(e=>docs.push(tsDoc(e,y,m)));else{docs.push(salDoc(y,m));if(sp.mode=='payroll')emps(y,m).forEach(e=>docs.push(tsDoc(e,y,m)))}});return docs}
+const NAME={payroll:'Payroll',sheet:'Salary Sheet',ts:'Timesheet'};
+async function run(sp,fmt){const docs=build(sp).map(x=>({...x,col:null,ec:null})),nm=fname(sp);
+ try{if(fmt=='pdf')pdf(docs,nm+'.pdf');else if(fmt=='xlsx')await xls(docs,nm+'.xlsx');else save(new Blob(['\ufeff'+csv(docs)],{type:'text/csv'}),nm+'.csv')}catch(err){alert('Download failed: '+err.message);return}
+ const j=JSON.stringify([sp,fmt]);D.reps=D.reps.filter(r=>JSON.stringify([r.sp,r.fmt])!=j);D.reps.unshift({sp,fmt,t:Date.now()});D.reps=D.reps.slice(0,8);persist();$('rh').innerHTML=repList()}
+const fl_=ps=>ps.length==1?MN[ps[0][1]-1]+'_'+ps[0][0]:MN[ps[0][1]-1].slice(0,3)+'_'+ps[0][0]+'_to_'+MN[ps[ps.length-1][1]-1].slice(0,3)+'_'+ps[ps.length-1][0];
+const tc=t=>t.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase()).replace(/\s+/g,'_');
+const fname=sp=>(sp.mode=='ts'&&sp.emp&&gE(sp.emp)?tc(gE(sp.emp).name):({payroll:'Payroll',sheet:'Salary_Sheet',ts:'Timesheets'})[sp.mode])+'_'+fl_(sp.ps);
+const runb=(mode,fmt,emp)=>run({mode,ps:[[Y,M]],emp:emp||0},fmt);
+const nums=x=>x.head.map((_,j)=>x.rows.some(r=>typeof r[j]=='number')),cell=v=>typeof v=='number'?(v?f2(v):''):String(v);
+function pdf(docs,fn){const {jsPDF}=window.jspdf;let d;
+ docs.forEach((x,i)=>{const o=x.head.length>9?'l':'p';if(!i)d=new jsPDF({orientation:o,unit:'pt',format:'a4'});else d.addPage('a4',o);
+  const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight(),num=nums(x),C=rgb(x.col||AC);
+  d.setFont('helvetica','bold').setFontSize(16).setTextColor(27,34,56).text(x.title,40,50);d.setDrawColor(...C).setLineWidth(2).line(40,60,W-40,60);let y=84;
+  x.meta.forEach(([k,v],j)=>{const px=40+j*(W-80)/x.meta.length;d.setFont('helvetica','normal').setFontSize(7).setTextColor(120).text(k.toUpperCase(),px,y);d.setFont('helvetica','bold').setFontSize(11).setTextColor(27,34,56).text(String(v),px,y+14)});
+  if(x.meta.length)y+=36;const pd=x.rows.length>24?2.2:5;
+  d.autoTable({startY:y,head:[x.head],body:x.rows.map(r=>r.map(cell)),foot:x.foot?[x.foot.map(cell)]:undefined,showFoot:'lastPage',theme:'grid',margin:{left:40,right:40},
+   styles:{fontSize:8.5,cellPadding:{top:pd,bottom:pd,left:5,right:5},textColor:[30,40,60],lineColor:[205,212,230],lineWidth:.5},
+   headStyles:{fillColor:C,textColor:255,fontStyle:'bold',fontSize:8},footStyles:{fillColor:[238,241,250],textColor:[27,34,56],fontStyle:'bold'},
+   didParseCell:h=>{if(num[h.column.index])h.cell.styles.halign='right';if(h.section=='body'&&x.fl){const f=x.fl[h.row.index];if(f==1)h.cell.styles.fillColor=[244,246,251];if(f==3){h.cell.styles.fillColor=[232,240,254];h.cell.styles.textColor=[30,58,138]}if(f==2)h.cell.styles.textColor=[200,60,60]}
+    if(h.section=='body'&&x.ec&&h.column.index==0)h.cell.styles.textColor=rgb(x.ec[h.row.index])}});
+  if(x.sum){let yy=d.lastAutoTable.finalY+26;const bx=W-40-230;if(yy>H-110){d.addPage('a4',o);yy=60}
+   x.sum.forEach(([k,v],j)=>{const last=j==x.sum.length-1;if(last){d.setDrawColor(...C).setLineWidth(1).line(bx,yy-13,W-40,yy-13);yy+=4}
+    d.setFont('helvetica',last?'bold':'normal').setFontSize(last?12:10).setTextColor(27,34,56).text(k,bx,yy);d.text(f2(v),W-40,yy,{align:'right'});yy+=18})}});
+ d.save(fn)}
+async function xls(docs,fn){const wb=new ExcelJS.Workbook(),used=new Set(),NF='#,##0.00;-#,##0.00;;@',fill=a=>({type:'pattern',pattern:'solid',fgColor:{argb:a}}),B={style:'thin',color:{argb:'FFCDD4E6'}},BD={top:B,bottom:B,left:B,right:B};
+ docs.forEach(x=>{let nm=x.name.replace(/[\\\/?*\[\]:]/g,'').slice(0,28)||'Sheet',k=nm,i=2;while(used.has(k.toLowerCase()))k=nm+' '+i++;used.add(k.toLowerCase());
+  const ca='FF'+(x.col||AC).slice(1).toUpperCase(),nc=x.head.length,num=nums(x),ws=wb.addWorksheet(k,{pageSetup:{orientation:nc>9?'landscape':'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});
+  ws.columns=x.head.map((h,j)=>({width:Math.min(34,Math.max(13,h.length+4,...x.rows.map(r=>String(r[j]).length+3)))}));
+  ws.mergeCells(1,1,1,nc);const t=ws.getCell(1,1);t.value=x.title;t.font={size:16,bold:true,color:{argb:'FF1B2238'}};t.alignment={vertical:'middle'};ws.getRow(1).height=32;
+  x.meta.forEach(([a,v],j)=>{const p=ws.getCell(3,j+1),q=ws.getCell(4,j+1);p.value=a.toUpperCase();p.font={size:8,color:{argb:'FF888888'}};q.value=v;q.font={bold:true,size:11}});
+  const hr=x.meta.length?6:3;
+  x.head.forEach((h,j)=>{const c=ws.getCell(hr,j+1);c.value=h;c.font={bold:true,size:10,color:{argb:'FFFFFFFF'}};c.fill=fill(ca);c.border=BD;c.alignment={horizontal:num[j]?'right':'left',vertical:'middle'}});ws.getRow(hr).height=24;
+  x.rows.forEach((row,i)=>{row.forEach((v,j)=>{const c=ws.getCell(hr+1+i,j+1);c.value=v===''?null:v;c.border=BD;c.alignment={horizontal:num[j]?'right':'left',vertical:'middle'};if(num[j])c.numFmt=NF;
+   const f=x.fl&&x.fl[i];if(f==1)c.fill=fill('FFF4F6FB');if(f==3){c.fill=fill('FFE8F0FE');c.font={color:{argb:'FF1E3A8A'}}}if(f==2)c.font={color:{argb:'FFC83C3C'}};
+   if(x.ec&&j==0)c.font={bold:true,color:{argb:'FF'+x.ec[i].slice(1).toUpperCase()}}});ws.getRow(hr+1+i).height=19});
+  let e=hr+x.rows.length+1;
+  if(x.foot){x.foot.forEach((v,j)=>{const c=ws.getCell(e,j+1);c.value=v===''?null:v;c.font={bold:true};c.fill=fill('FFEEF1FA');c.border=BD;c.alignment={horizontal:num[j]?'right':'left'};if(num[j])c.numFmt=NF});ws.getRow(e).height=21;e+=2}
+  if(x.sum)x.sum.forEach(([a,v],j)=>{const last=j==x.sum.length-1,p=ws.getCell(e,nc-2),q=ws.getCell(e,nc);p.value=a;q.value=v;q.numFmt='#,##0.00';q.alignment={horizontal:'right'};if(last){p.font=q.font={bold:true,size:12};const tp={top:{style:'medium',color:{argb:ca}}};p.border=q.border=ws.getCell(e,nc-1).border=tp}e++});
+  ws.views=[{state:'frozen',ySplit:hr,showGridLines:false}]});
+ save(new Blob([await wb.xlsx.writeBuffer()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn)}
+const csv=docs=>docs.map(x=>[[x.title],...x.meta,x.head,...x.rows,...(x.foot?[x.foot]:[]),...(x.sum||[])].map(r=>r.map(c=>typeof c=='number'?c:'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n')).join('\n\n');
+function save(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+const btns=(mode,emp)=>['pdf','xlsx','csv'].map(f=>`<button class="btn g" onclick="runb('${mode}','${f}',${emp||0})">${f=='xlsx'?'Excel':f.toUpperCase()}</button>`).join('');
+function tbl(x){const n=nums(x);return'<table class="g"><tr>'+x.head.map((h,j)=>`<th class="${n[j]?'n':''}">${h}</th>`).join('')+'</tr>'+x.rows.map((r,i)=>`<tr class="${x.fl&&x.fl[i]?'s'+x.fl[i]:''}">`+r.map((v,j)=>`<td class="${n[j]?'n':''}">${j==0&&x.ec?`<span class=dot style="--c:${x.ec[i]}"></span>`:''}${esc(cell(v))}</td>`).join('')+'</tr>').join('')+(x.foot?'<tr>'+x.foot.map((v,j)=>`<th class="${n[j]?'n':''}">${esc(cell(v))}</th>`).join('')+'</tr>':'')+'</table>'}
+const KW=/\b(public\s+holiday|holiday|leave|vacation|absent|sick|off)\b/i,STOP=new Set('from to is on of the for and until till through are was a an in at please mark marked add set'.split(' ')),ALL=['all','everyone','everybody','employees','staff','team'];
+const fe=k=>D.emps.find(e=>e.name.toLowerCase()==k)||D.emps.find(e=>k.length>3&&lev(e.name.toLowerCase(),k)<=1),CT={n:0,dp:0};
+const nd=d=>new Date(new Date(d+'T00:00:00Z').getTime()+864e5).toISOString().slice(0,10);
+function addEnt(e,d,o,raw){if(!raw&&o.s)for(let i=0;i<2;i++)if(D.ents.some(z=>z.e==e.id&&z.d==d&&z.s&&z.t<=z.s&&o.s<z.s))d=nd(d);const x={e:e.id,d,...o};if(D.ents.some(z=>z.e==x.e&&z.d==x.d&&z.s==x.s&&z.t==x.t&&!z.L==!x.L&&!z.H==!x.H))CT.dp++;else{x.i=D.n++;D.ents.push(x);CT.n++}}
+function dts(a,b){const o=[],e=new Date(b+'T00:00:00Z');for(let d=new Date(a+'T00:00:00Z');d<=e&&o.length<93;d=new Date(d.getTime()+864e5))o.push(d.toISOString().slice(0,10));return o}
+function dRange(t){const f=x=>{let y=+x[3];if(y<100)y+=2000;return y+'-'+pad(+x[2])+'-'+pad(+x[1])},m=[...t.matchAll(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/g)];
+ if(m.length>=2)return[f(m[0]),f(m[1]),t.slice(m[0].index,m[1].index+m[1][0].length)];
+ const mi=x=>{x=(x||'').toLowerCase();return MM.findIndex(n=>n==x||n.slice(0,3)==x||(x=='sept'&&n=='september'))+1};
+ let r=t.match(/(\d{1,2})(?:st|nd|rd|th)?\s*([a-z]{3,9})?\s*(?:to|-|–|until|till|through)\s*(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]{3,9})(?:,?\s*(20\d\d))?/i);
+ if(r&&mi(r[4])){const m2=mi(r[4]),m1=mi(r[2])||m2,y=+r[5]||Y;return[key(y,m1)+'-'+pad(+r[1]),key(y,m2)+'-'+pad(+r[3]),r[0]]}
+ r=t.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]{3,9})(?:,?\s*(20\d\d))?/i);
+ if(r&&mi(r[2])){const d=key(+r[3]||Y,mi(r[2]))+'-'+pad(+r[1]);return[d,d,r[0]]}
+ return null}
+function parseText(text){let cur=[],all=false,tm=null,dt=null,rg=null;const unk=new Set();CT.n=CT.dp=0;
+ for(const ln of text.split('\n')){let s=ln;const hk=KW.test(s),r=hk?dRange(s):null;
+  if(r){rg=r;dt=r[0];s=s.replace(r[2],' ')}
+  else{const dm=s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(dm){let y=+dm[3];if(y<100)y+=2000;dt=y+'-'+pad(+dm[2])+'-'+pad(+dm[1]);s=s.replace(dm[0],' ');rg=null}}
+  const tt=s.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*(?:to|-|–|until)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+  if(tt){const c=(h,mi,a)=>pad(+h%12+(a.toLowerCase()=='pm'?12:0))+':'+(mi||'00');tm=[c(tt[1],tt[2],tt[3]),c(tt[4],tt[5],tt[6])];s=s.replace(tt[0],' ')}
+  if(hk){tm=/holiday/i.test(s)?'H':'L';s=s.replace(new RegExp(KW.source,'ig'),' ')}
+  s.split(/[,&+]|\band\b/i).map(x=>x.trim()).filter(x=>/[a-z]{2}/i.test(x)).forEach(x=>{const k=x.toLowerCase();if(ALL.includes(k)){all=true;return}
+   const e=fe(k);if(e){cur.push(e);return}
+   const ws=k.split(/\s+/).map(w=>w.replace(/[^a-z]/g,'')).filter(w=>w.length>1&&!STOP.has(w));
+   ws.forEach(w=>{if(ALL.includes(w)){all=true;return}const f=fe(w);f?cur.push(f):(ws.length==1&&unk.add(x))})});
+  if((cur.length||all)&&tm&&dt){(rg?dts(rg[0],rg[1]):[dt]).forEach(d=>(all?emps(+d.slice(0,4),+d.slice(5,7)):[...new Set(cur)]).forEach(e=>addEnt(e,d,tm=='L'?{L:1}:tm=='H'?{H:1}:{s:tm[0],t:tm[1]})));
+   Y=+dt.slice(0,4);M=+dt.slice(5,7);cur=[];all=false;tm=null;rg=null}}
+ persist();render();
+ return CT.n+' entr'+(CT.n==1?'y':'ies')+' added'+(CT.dp?', '+CT.dp+' duplicate(s) skipped':'')+(unk.size?'. Unknown names: '+[...unk].join(', ')+' (add them under Employees).':'.')}
+function addPaste(){$('pmsg').textContent=parseText($('paste').value);$('paste').value=''}
+function fillLv(){const v=$('lvE').value;$('lvE').innerHTML='<option value=0>All employees</option>'+emps(Y,M).map(e=>`<option value=${e.id}>${esc(e.name)}`).join('');if([...$('lvE').options].some(o=>o.value==v))$('lvE').value=v}
+function markLeave(){const a=$('lvA').value,b=$('lvB').value||a,v=+$('lvE').value,t=$('lvT').value;if(!a)return;CT.n=CT.dp=0;
+ dts(a,b).forEach(d=>(v?[gE(v)]:emps(+d.slice(0,4),+d.slice(5,7))).forEach(e=>addEnt(e,d,t=='H'?{H:1}:{L:1})));
+ Y=+a.slice(0,4);M=+a.slice(5,7);persist();render();$('lvm').textContent=CT.n+' day(s) marked'+(CT.dp?', '+CT.dp+' already marked':'')}
+let TF=0,LD='';const bd=(a,b)=>a.d<b.d?-1:a.d>b.d?1:(a.s||'')<(b.s||'')?-1:1;
+function entTable(list,full){return'<table class="g"><tr><th>Date<th>Day'+(full?'<th>Employee':'')+'<th>Type<th>Start time<th>End time<th class=n>Shift hrs<th></tr>'+(list.map(x=>{const e=gE(x.e)||{name:'?'},k=x.L?'L':x.H?'H':'S',dd=new Date(x.d+'T00:00').getDay(),dis=k!='S'?'disabled':'';
+ return`<tr><td><input type=date value="${x.d}" onchange="upd(${x.i},'d',this.value)"><td>${DN[dd]}${full?`<td><span class=dot style="--c:${colOf(e)}"></span><select onchange="upd(${x.i},'e',this.value)">${D.emps.filter(o=>inc(o,+x.d.slice(0,4),+x.d.slice(5,7))||o.id==x.e).map(o=>`<option value=${o.id} ${o.id==x.e?'selected':''}>${esc(o.name)}`).join('')}</select>`:''}<td><select onchange="upd(${x.i},'k',this.value)">${[['S','Shift'],['L','Leave'],['H','Public holiday']].map(([v,l])=>`<option value=${v} ${v==k?'selected':''}>${l}`).join('')}</select><td><input type=time value="${x.s||''}" ${dis} onchange="upd(${x.i},'s',this.value)"><td><input type=time value="${x.t||''}" ${dis} onchange="upd(${x.i},'t',this.value)"><td class=n>${x.s&&x.t?f2(dur(x)):''}<td><button class=x onclick="del(${x.i})">✕</button></tr>`}).join('')||`<tr><td colspan=${full?8:7} class=sun>No entries this month.</tr>`)+'</table>'}
+function addForm(p,fx){const d=LD&&LD.startsWith(key(Y,M))?LD:key(Y,M)+'-01';
+ return`<div class="row" style="margin-bottom:12px"><input type=date id="${p}d" value="${d}">${fx?'':`<select id="${p}e">${emps(Y,M).map(e=>`<option value=${e.id}>${esc(e.name)}`).join('')}</select>`}<select id="${p}k"><option value=S>Shift<option value=L>Leave<option value=H>Public holiday</select><input type=time id="${p}s" value="08:00"><input type=time id="${p}t" value="17:00"><button class=btn onclick="addOne('${p}',${fx||0})">Add entry</button></div>`}
+function addOne(p,fx){const d=$(p+'d').value,e=gE(fx||+$(p+'e').value),k=$(p+'k').value,a=$(p+'s').value,b=$(p+'t').value;if(!d||!e)return;if(k=='S'&&(!a||!b)){alert('Enter the start and end time.');return}
+ CT.n=CT.dp=0;addEnt(e,d,k=='L'?{L:1}:k=='H'?{H:1}:{s:a,t:b},true);LD=d;Y=+d.slice(0,4);M=+d.slice(5,7);persist();render()}
+function upd(i,f,v){const x=D.ents.find(z=>z.i==i);if(!x)return;
+ if(f=='d'){if(!v)return;x.d=v}else if(f=='e')x.e=+v;else if(f=='s'||f=='t')x[f]=v;
+ else{delete x.L;delete x.H;if(v=='L'){x.L=1;delete x.s;delete x.t}else if(v=='H'){x.H=1;delete x.s;delete x.t}else{x.s=x.s||'08:00';x.t=x.t||'17:00'}}
+ persist();render()}
+function rLog(){fillLv();const sel=$('tsf');sel.innerHTML='<option value=0>All employees</option>'+emps(Y,M).map(e=>`<option value=${e.id}>${esc(e.name)}`).join('');sel.value=TF;
+ $('addA').innerHTML=addForm('a');$('ent').innerHTML=entTable(D.ents.filter(x=>x.d.startsWith(key(Y,M))&&(!TF||x.e==TF)).sort((a,b)=>a.d==b.d?(gE(a.e)||{name:''}).name.localeCompare((gE(b.e)||{name:''}).name)||bd(a,b):bd(a,b)),true)}
+function del(i){D.ents=D.ents.filter(x=>x.i!=i);persist();render()}
+function repList(){return D.reps.length?'<table class="g"><tr><th>Report<th>Format<th>Generated<th></tr>'+D.reps.map((r,i)=>`<tr><td>${NAME[r.sp.mode]} - ${label(r.sp.ps)}${r.sp.emp&&gE(r.sp.emp)?' - '+esc(gE(r.sp.emp).name):''}<td>${r.fmt.toUpperCase()}<td>${new Date(r.t).toLocaleString('en-GB')}<td><button class="btn g" onclick="run(D.reps[${i}].sp,D.reps[${i}].fmt)">Download</button></tr>`).join('')+'</table>':'<span class=sun>Nothing generated yet.</span>'}
+function runYear(f){const ps=[];for(let m=1;m<=12;m++)if(hasData(Y,m))ps.push([Y,m]);if(!ps.length){alert('No entries logged in '+Y+' yet.');return}run({mode:'sheet',ps,emp:0},f)}
+function rPay(){$('sal').innerHTML=`<h3>Salary sheet - ${MN[M-1]} ${Y}</h3>`+tbl(salDoc(Y,M));$('rh').innerHTML=repList();
+ $('dls').innerHTML=[['Salary sheet - '+MN[M-1]+' '+Y,"runb('sheet','@')"],['Full payroll (salary sheet + timesheets)',"runb('payroll','@')"],['Whole year '+Y+' (all salary sheets)',"runYear('@')"]].map(([l,c])=>`<div class="row sp" style="padding:8px 0"><span>${l}</span><span class=row>${['pdf','xlsx','csv'].map(f=>`<button class="btn g" onclick="${c.replace('@',f)}">${f=='xlsx'?'Excel':f.toUpperCase()}</button>`).join('')}</span></div>`).join('')+'<p class=sun>For other periods (e.g. the last 6 months), ask the Assistant.</p>'}
+function rDash(){const es=emps(Y,M),cs=es.map(e=>calc(e,Y,M)),S=f=>R(cs.reduce((a,c)=>a+f(c),0));
+ $('v-dash').innerHTML=`<h2>${MN[M-1]} ${Y}</h2><div class=grid>${[['Employees',es.length,'#2563eb'],['Working hours',f2(S(c=>c.th)),'#0ea5e9'],['Total salary',f2(S(c=>c.tot)),'#10b981'],['Overtime hours',f2(S(c=>c.ot)),'#f59e0b']].map(([k,v,c])=>`<div class="card stat" style="--c:${c}"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+ <div class=grid>${cs.map(c=>`<div class="card emp" style="--c:${colOf(c.e)}" onclick="openEmp(${c.e.id})"><span class=av>${esc(c.e.name.slice(0,2))}</span><div><b>${esc(c.e.name)}</b>${f2(c.tot)}<div class=sun>${f2(c.th)} h · OT ${f2(c.ot)} h</div></div></div>`).join('')}</div>
+ <div class=row><button class=btn onclick="go('ts')">Add timesheet</button><button class="btn g" onclick="runb('payroll','pdf')">Payroll PDF</button><button class="btn g" onclick="runb('sheet','pdf')">Salary sheet PDF</button></div>`}
+function openEmp(id){CUR=id;go('one')}
+function rOne(){const es=emps(Y,M),e=gE(CUR)&&es.includes(gE(CUR))?gE(CUR):es[0];if(!e){$('v-one').innerHTML='';return}CUR=e.id;
+ const c=calc(e,Y,M),mx=Math.max(9,...c.days.map(d=>d.h)),ys=[];for(let m=1;m<=12;m++)ys.push(inc(e,Y,m)&&hasData(Y,m)?calc(e,Y,m).tot:0);const ym=Math.max(1,...ys),C=colOf(e);
+ $('v-one').innerHTML=`<div class="row sp" style="margin-bottom:14px"><div class=row style="--c:${C}"><span class=av>${esc(e.name.slice(0,2))}</span><h2 style="margin:0">${esc(e.name)}</h2></div><select onchange="CUR=+this.value;rOne()">${es.map(x=>`<option value=${x.id} ${x.id==e.id?'selected':''}>${esc(x.name)}`).join('')}</select></div>
+ <div class=grid>${[['Total salary',f2(c.tot)],['Salary',f2(c.base)],['OT salary',f2(c.pay)],['Hourly rate',f2(c.rate)],['Total hours',f2(c.th)],['OT hours',f2(c.ot)],['Days worked',c.days.filter(d=>d.sh.length).length],['Leave / holidays',c.lv+' / '+c.hol]].map(([k,v])=>`<div class="card stat" style="--c:${C}"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+ <div class=grid><div class=card style="--c:${C}"><h3>Daily hours</h3><div class=bar>${c.days.map(d=>`<div title="${d.d}: ${f2(d.h)}h"><i style="height:${d.h/mx*100}%;opacity:${d.sun?.45:1}"></i></div>`).join('')}</div></div>
+ <div class=card style="--c:${C}"><h3>Monthly pay - ${Y}</h3><div class=bar>${ys.map((v,i)=>`<div title="${MN[i]}: ${f2(v)}"><i style="height:${v/ym*100}%"></i></div>`).join('')}</div></div></div>
+ <div class="card scroll">${tbl(tsDoc(e,Y,M))}</div><div class="card scroll"><h3>Edit entries <span class=sun id=sv2>(changes save automatically)</span></h3>${addForm('b',e.id)}${entTable(D.ents.filter(x=>x.e==e.id&&x.d.startsWith(key(Y,M))).sort(bd),false)}</div><div class=row>${btns('ts',e.id)}</div>`}
+function rEmp(){$('emp').innerHTML='<tr><th>Name<th class=n>Monthly salary<th class=n>Basic salary<th class=n>Hourly rate<th></tr>'+(emps(Y,M).map(e=>{const a=salOf(e,Y,M),i=(f,v,w)=>`<td class=n><input type=number step=0.01 value="${v}" style="width:${w}px;text-align:right" onchange="setSal(${e.id},'${f}',this.value)">`;
+ return`<tr><td><span class=dot style="--c:${colOf(e)}"></span><input value="${esc(e.name)}" onchange="ren(${e.id},this.value)">${i('s',a.s,110)}${i('b',a.b||a.s,110)}${i('r',R(rateOf(a)),90)}<td><button class=x onclick="rm(${e.id})">Remove</button></tr>`}).join('')||'<tr><td colspan=5 class=sun>No employees yet. Add your first employee below, or restore a backup.</tr>')}
+function ren(id,v){if(v.trim())gE(id).name=v.trim();persist();render()}
+function setSal(id,f,v){const e=gE(id),k=key(Y,M),n={...salOf(e,Y,M),k};v=+v||0;if(f=='s')n.s=v;else if(f=='b'){n.b=v;n.r=null}else n.r=v;e.sal=e.sal.filter(x=>x.k!=k);e.sal.push(n);e.sal.sort((a,b)=>a.k<b.k?-1:1);persist();render()}
+function rm(id){const e=gE(id);if(confirm('Remove '+e.name+' from '+MN[M-1]+' '+Y+' onward? Past months are kept.')){e.en=key(Y,M);persist();render()}}
+function addEmp(){const n=$('nn').value.trim(),s=+$('ns').value||0;if(!n)return;D.emps.push({id:D.n++,name:n,st:key(Y,M),sal:[{k:key(Y,M),s,b:+$('nb').value||s,r:null}]});$('nn').value=$('ns').value=$('nb').value='';persist();render()}
+function bk(){save(new Blob([JSON.stringify(D)],{type:'application/json'}),'timewise-backup-'+D.co.replace(/\W+/g,'_')+'.json')}
+function imp(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.emps)||!Array.isArray(x.ents))throw 0;if(!confirm('Replace this company\'s current data with the backup?'))return;x.co=D.co;x.reps=x.reps||[];D=x;persist();render();go('dash')}catch(e){alert('Invalid backup file')}};r.readAsText(f)}
+const NW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12},addM=(y,m,k)=>{const t=y*12+m-1+k;return[Math.floor(t/12),t%12+1]};
+function latest(){let b='';D.ents.forEach(x=>{if(x.d>b)b=x.d});return b?[+b.slice(0,4),+b.slice(5,7)]:[Y,M]}
+function periods(t,w){const yy=+((t.match(/\b(20\d\d)\b/)||[])[1]||Y),mi=[];
+ w.forEach(x=>{const k=MM.findIndex(n=>x==n||x==n.slice(0,3));if(k>=0&&!mi.includes(k+1))mi.push(k+1)});
+ const nm=t.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)[\s-]*months?\b/);
+ if(nm&&!mi.length){const n=NW[nm[1]]||+nm[1],[ey,em]=latest();return Array.from({length:n},(_,i)=>addM(ey,em,i-n+1))}
+ if(mi.length==2&&/\b(from|between|to|through|till|until)\b/.test(t)){const [a,b]=mi,o=[];let c=[a>b?yy-1:yy,a];for(let i=0;i<36;i++){o.push(c);if(c[1]==b&&c[0]==yy)break;c=addM(c[0],c[1],1)}return o}
+ if(mi.length)return mi.sort((a,b)=>a-b).map(m=>[yy,m]);
+ if(/year|annual|whole|entire/.test(t)){const o=[];for(let m=1;m<=12;m++)if(hasData(yy,m))o.push([yy,m]);return o.length?o:[[yy,M]]}
+ return[[Y,M]]}
+let LAST=null;
+function ask(q){const t=q.toLowerCase(),w=t.match(/[a-z]+/g)||[],ps=periods(t,w),fmt=/excel|xlsx|spreadsheet/.test(t)?'xlsx':/csv/.test(t)?'csv':'pdf';
+ const es=D.emps.filter(e=>{const n=e.name.toLowerCase();return w.some(x=>x==n||(x.length>3&&lev(x,n)<=1))});
+ const noun=/payroll|salary sheet|salaries|timesheet|report/.test(t),qn=/\?|^(what|how|who|which|when|why|is|are|did|does|do|can|could|tell)\b/.test(t),fo=/^(as |in |make it |give me |send |download )?(a |an )?(pdf|excel|xlsx|csv)( file)?$/.test(t.trim().replace(/[.!]+$/,''));
+ if((noun&&!qn)||(noun&&/pdf|excel|xlsx|csv|spreadsheet/.test(t))||fo){let sp;
+  if(fo)sp=LAST?{...LAST}:{mode:'sheet',ps:[[Y,M]],emp:0};
+  else{const mode=/timesheet/.test(t)?'ts':/salary sheet|salaries/.test(t)&&!/payroll/.test(t)?'sheet':'payroll';sp={mode,ps,emp:mode=='ts'&&es.length==1?es[0].id:0}}
+  LAST=sp;const mode=sp.mode,pp=sp.ps;run(sp,fmt);return{t:`Building ${NAME[mode]} for ${label(pp)} (${pp.length} month${pp.length>1?'s':''}, ${fmt.toUpperCase()}). Your download will start now.`+(pp.some(([y,m])=>hasData(y,m))?'':'\nNote: no entries are logged for this period, so it shows base salaries only.'),a:['Download again',()=>run(sp,fmt)]}}
+ if(es.length==1&&/shift|working hours|timesheet/.test(t)){const [y,m]=ps[0],c=calc(es[0],y,m),l=c.days.filter(d=>d.sh.length||d.L||d.H).map(d=>`${pad(d.d)}/${pad(m)} ${DN[new Date(y,m-1,d.d).getDay()]}: ${d.sh.length?d.sh.map(s=>s.S+' - '+s.E).join(' + ')+' ('+f2(d.h)+' h'+(d.o?', OT '+f2(d.o):'')+')':st(d)}`);
+  return{t:`${es[0].name} · ${MN[m-1]} ${y}\n`+(l.join('\n')||'No entries logged.')+`\nTotal ${f2(c.th)} h, OT ${f2(c.ot)} h`}}
+ const ot=/overtime|\bot\b/.test(t),hr=/hour|hrs/.test(t),lv=/leave/.test(t),rt=/rate/.test(t);
+ const lab=lv?'Leave days':rt?'Hourly rate':ot?(hr?'Overtime hours':'Overtime salary'):hr?'Total hours':'Total salary';
+ const val=(e,y,m)=>{const c=calc(e,y,m);return lv?c.lv:rt?c.rate:ot?(hr?c.ot:c.pay):hr?c.th:c.tot};
+ const pool=es.length?es:D.emps.filter(e=>ps.some(([y,m])=>inc(e,y,m))),r=pool.map(e=>[e,R(ps.reduce((a,[y,m])=>a+(inc(e,y,m)?val(e,y,m):0),0))]);
+ if(!r.length)return{t:'No employees found for '+label(ps)+'.'};
+ if(/who|most|highest|top|least|lowest/.test(t)&&!es.length){r.sort((a,b)=>/least|lowest/.test(t)?a[1]-b[1]:b[1]-a[1]);return{t:`${lab} · ${label(ps)}\n${r[0][0].name}: ${f2(r[0][1])}`}}
+ let s=`${lab} · ${label(ps)}\n`+r.map(([e,v])=>`${e.name}: ${f2(v)}`).join('\n');
+ if(r.length>1&&!lv&&!rt)s+='\nTotal: '+f2(R(r.reduce((a,b)=>a+b[1],0)));
+ if(es.length==1&&!ot&&!hr&&!lv&&!rt&&ps.length==1&&inc(es[0],...ps[0])){const c=calc(es[0],...ps[0]);s+=`\n(salary ${f2(c.base)} + overtime ${f2(c.pay)})`}
+ if(!ps.some(([y,m])=>hasData(y,m)))s+='\nNo entries logged for this period yet.';return{t:s}}
+function send(q){q=(q||$('q').value).trim();if(!q)return;$('q').value='';const c=$('chat');
+ const hasD=/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/.test(q),tr=/\d\s*(am|pm)\s*(to|-|–|until)/i.test(q),lk=KW.test(q),gv=/\b(generate|create|build|prepare|download|export)\b/i.test(q);
+ const entry=!gv&&!q.includes('?')&&((hasD&&(tr||lk))||(lk&&!!dRange(q)));
+ const r=entry?{t:parseText(q)}:ask(q),i=ACT.push(r.a?r.a[1]:null)-1;
+ c.insertAdjacentHTML('beforeend',`<div class="msg me">${esc(q)}</div><div class="msg bot">${esc(r.t)}${r.a?`<br><button class="btn s" onclick="ACT[${i}]()">${r.a[0]}</button>`:''}</div>`);c.scrollTop=c.scrollHeight}
+const VW=[['dash','Overview'],['ts','Timesheets'],['pay','Payroll'],['emp','Employees'],['ai','Assistant']];
+$('nav').innerHTML=VW.map(([v,l])=>`<button id="n-${v}" onclick="go('${v}')">${l}</button>`).join('');
+function go(v){V=v;[...VW.map(x=>x[0]),'one'].forEach(x=>{$('v-'+x).hidden=x!=v;if($('n-'+x))$('n-'+x).className=x==v||(v=='one'&&x=='emp')?'on':''});render()}
+$('mo').innerHTML=MN.map((m,i)=>`<option value=${i+1}>${m}`).join('');
+$('mo').onchange=$('yr').onchange=()=>{M=+$('mo').value;Y=+$('yr').value||Y;render()};
+function render(){$('mo').value=M;$('yr').value=Y;rDash();rLog();rPay();rEmp();rOne()}
+boot();
+</script></body></html>
